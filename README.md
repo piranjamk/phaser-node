@@ -1,2 +1,0 @@
-# phaser-node
-projekt zaliczeniowy
