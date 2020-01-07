@@ -1,0 +1,541 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 10</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+//SZABLON: https://phaser.io/tutorials/making-your-first-phaser-3-game/part1
+//WZOR: https://gamedevacademy.org/phaser-3-tutorial/
+var config = {
+    type: Phaser.AUTO,
+    width: 1199,
+    height: 650,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 600 },
+            debug: false
+        }
+    },
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
+    }
+};
+
+var licznik = 0;
+var gracz;
+var prezenty;
+var przeszkody;
+var podesty;
+var klawisze;
+var score = 0;
+var gameOver = false;
+var scoreText;
+var latanie = 0;
+var thedoors_open;
+var kanistry;
+var poziom_paliwa = 0;
+var poziom_paliwaText;
+var polozenie_pixelzielony = 501;
+var overlay;
+var koniec;
+var goblinwidocznosc;
+
+var game = new Phaser.Game(config);
+
+function preload ()
+{
+    this.load.image('sky', 'assets/sky.png');
+    this.load.image('ground', 'assets/platform.png');
+    this.load.image('prezent', 'assets/prezent.png');
+    this.load.image('bomb', 'assets/bomb.png');
+    this.load.spritesheet('figurka', 'assets/figurka.png', { frameWidth: 23, frameHeight: 23 });
+
+    this.load.image('szarydlugi', 'assets/szarydlugi.png');
+    this.load.image('szarykrotki', 'assets/szarykrotki.png');
+    this.load.image('odbijak', 'assets/szarykrotki.png');
+    this.load.image('srebrny', 'assets/srebrny.png');
+    this.load.image('czerwony', 'assets/czerwony.png');
+    this.load.image('drzwizamk', 'assets/drzwizamk.png');
+    this.load.image('fuel', 'assets/fuel.png');
+    this.load.image('drzwiotw', 'assets/drzwiotw.png');
+    this.load.image('wyjscie', 'assets/wyjscie.png');
+    this.load.image('goblin', 'assets/goblin.png');
+    this.load.image('goblin2', 'assets/goblin2.png');
+    this.load.image('pasekpusty', 'assets/pasekpusty.png');
+    this.load.image('pasekzielony', 'assets/pasekzielony.png');
+    this.load.image('pixelzielony', 'assets/pixelzielony.png');
+    this.load.image('pixelszary', 'assets/pixelszary.png');
+}
+
+function create ()
+{
+
+    //  A simple background for our game
+    this.add.image(600, 300, 'sky');
+    this.add.image(802, 621, 'pasekpusty');
+    //this.add.image(801, 79, 'pasekzielony');
+    
+    this.add.image(1147, 510, 'drzwiotw');
+
+    overlay = this.add.image(1150, 510, 'drzwizamk');
+    //overlay.visible =false;
+    //test drzwi otwartych  this.add.image(1147, 510, 'drzwiotw');
+    //this.add.image(polozenie_pixelzielony,79, 'pixelszary');//testpixelszary
+    //  The platforms group contains the ground and the 2 ledges we can jump on
+    podesty = this.physics.add.staticGroup();
+    prezenty = this.physics.add.group();
+    kanistry = this.physics.add.group();
+    thedoors_open = this.physics.add.group();
+
+    //  Here we create the ground.
+    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+    podesty.create(600, 585, 'szarydlugi');
+    podesty.create(1200, 555, 'szarykrotki');
+    podesty.create(1170, 555, 'szarykrotki');
+    podesty.create(1140, 555, 'szarykrotki');
+    //podesty.create(1110, 555, 'szarykrotki');
+    podesty.create(1110, 555, 'odbijak');
+    //odstepy
+    //podesty.create(15, 555, 'szarykrotki');
+    podesty.create(15, 555, 'odbijak');
+    podesty.create(15, 525, 'szarykrotki');
+    podesty.create(15, 495, 'szarykrotki');
+    podesty.create(15, 465, 'szarykrotki');
+    podesty.create(15, 435, 'szarykrotki');
+    podesty.create(15, 405, 'szarykrotki');
+    podesty.create(15, 375, 'szarykrotki');
+    //
+    //podesty.create(45, 375, 'szarykrotki');
+    this.add.image(45, 375, 'szarykrotki');//czarymarynocnekoszmary przenikanie
+    this.add.image(75, 375, 'szarykrotki');
+    //podesty.create(75, 375, 'szarykrotki');
+    podesty.create(105, 375, 'szarykrotki');
+    //kolejna
+    podesty.create(105, 405, 'szarykrotki');
+    podesty.create(135, 405, 'szarykrotki');
+    podesty.create(165, 405, 'szarykrotki');
+    //kolejna
+    podesty.create(165,435,'szarykrotki');
+    podesty.create(195,435,'szarykrotki');
+    podesty.create(195,465,'szarykrotki');
+    podesty.create(225,495,'szarykrotki');
+    podesty.create(225,525,'szarykrotki');
+    //kolejna
+    podesty.create(45,465,'srebrny');
+    podesty.create(75,465,'srebrny');
+    podesty.create(105,465,'srebrny');
+    //kolejna
+    podesty.create(75,525,'srebrny');
+    podesty.create(105,525,'srebrny');
+    podesty.create(135,525,'srebrny');
+    podesty.create(165,525,'srebrny');
+
+    //luzne
+    podesty.create(900, 135,'czerwony');
+    podesty.create(800, 350,'srebrny');
+    podesty.create(1120, 300,'czerwony');
+    podesty.create(600, 135,'srebrny');
+    //czerwone podesty
+    podesty.create(75, 135,'srebrny');
+    podesty.create(135, 135,'czerwony');
+    podesty.create(195, 165,'czerwony');
+    podesty.create(255, 135,'czerwony');
+    podesty.create(315, 105,'czerwony');
+    podesty.create(375, 135,'czerwony');
+    podesty.create(435, 165,'czerwony');
+    //nastepne
+    podesty.create(300, 300,'czerwony');
+    podesty.create(330, 300,'czerwony');
+    podesty.create(360, 300,'czerwony');
+    podesty.create(390, 300,'czerwony');
+    podesty.create(420, 300,'czerwony');
+    podesty.create(450, 300,'czerwony');
+    //nizsza pierwsza
+    podesty.create(420, 400,'czerwony');  
+    podesty.create(450, 400,'czerwony');
+    podesty.create(480, 400,'czerwony');
+    //platforms.create(510, 400,'czerwony');
+    //platforms.create(540, 400,'czerwony');
+    podesty.create(570, 400,'czerwony');
+    podesty.create(600, 400,'czerwony');
+    podesty.create(630, 400,'czerwony');
+    podesty.create(660, 400,'czerwony');
+    //nizsza druga
+    podesty.create(770, 500,'czerwony');
+    podesty.create(800, 500,'czerwony');
+    podesty.create(830, 500,'czerwony');
+    podesty.create(860, 500,'czerwony');
+    podesty.create(890, 500,'czerwony');
+    podesty.create(920, 500,'czerwony');
+    //srodkowa-srodek
+    podesty.create(600, 200,'czerwony');
+    podesty.create(630, 200,'czerwony');
+    podesty.create(660, 200,'czerwony');
+    podesty.create(690, 200,'czerwony');
+    podesty.create(720, 200,'czerwony');
+    podesty.create(750, 200,'czerwony');
+    podesty.create(780, 200,'czerwony');
+    //nastepna
+    podesty.create(900, 250,'czerwony');
+    podesty.create(930, 250,'czerwony');
+    podesty.create(960, 250,'czerwony');
+    podesty.create(990, 250,'czerwony');
+    podesty.create(1020, 250,'czerwony');
+    podesty.create(1050, 250,'czerwony');
+    //najwyzsza po prawej
+    podesty.create(1000, 100,'czerwony');
+    podesty.create(1030, 100,'czerwony');
+    podesty.create(1060, 100,'czerwony');
+    podesty.create(1090, 100,'czerwony');
+    podesty.create(1120, 100,'czerwony');
+    podesty.create(1150, 100,'czerwony');
+    podesty.create(1180, 100,'czerwony');
+    podesty.create(1210, 100,'czerwony');
+    //ostatnia po prawej
+    podesty.create(1060, 420,'czerwony');
+    podesty.create(1090, 420,'czerwony');
+    podesty.create(1120, 420,'czerwony');
+    podesty.create(1150, 420,'czerwony');
+    podesty.create(1180, 420,'czerwony');
+    podesty.create(1210, 420,'czerwony');
+
+
+    //prezenty
+
+    //najnizsza
+
+    //  Now let's create some ledges
+    /* kriejtujemy ledgesy
+    podesty.create(600, 400, 'ground');
+    podesty.create(50, 250, 'ground');
+    podesty.create(750, 220, 'ground');
+    */
+
+
+    // The player and its settings
+    gracz = this.physics.add.sprite(680, 150, 'figurka');
+    //  Player physics properties. Give the little guy a slight bounce.
+    gracz.setBounce(0.2);
+    gracz.setCollideWorldBounds(true);
+    //  Our player animations, turning, walking left and walking right.
+    this.anims.create({
+        key: 'left',
+        frames: this.anims.generateFrameNumbers('figurka', { start: 0, end: 3 }),
+        frameRate: 10,
+        repeat: -1
+    });
+    this.anims.create({
+        key: 'turn',
+        frames: [ { key: 'figurka', frame: 4 } ],
+        frameRate: 20
+    });
+    this.anims.create({
+        key: 'right',
+        frames: this.anims.generateFrameNumbers('figurka', { start: 5, end: 8 }),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    //  Input Events
+    klawisze = this.input.keyboard.createCursorKeys();
+
+    //  Some stars to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
+    /*
+    stars = this.physics.add.group({
+        key: 'star',
+        repeat: 11,
+        setXY: { x: 12, y: 0, stepX: 70 }
+    });
+    
+    
+    stars.children.iterate(function (child) {
+        //  Give each star a slightly different bounce
+        child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+
+    });
+    */
+    
+    prezenty.create(30, 30, 'prezent');
+    prezenty.create(77, 30, 'prezent');
+    prezenty.create(65, 400, 'prezent');
+    prezenty.create(135, 400, 'prezent');
+    prezenty.create(138, 30, 'prezent');
+    prezenty.create(195, 30, 'prezent');
+    prezenty.create(255, 30, 'prezent');
+    prezenty.create(315, 30, 'prezent');
+    prezenty.create(375, 30, 'prezent');
+    prezenty.create(435, 30, 'prezent');
+    prezenty.create(900, 30, 'prezent');
+    prezenty.create(370, 150, 'prezent');
+    prezenty.create(600, 230, 'prezent');
+    
+    prezenty.create(800, 230, 'prezent');//srebrny
+    /*
+    stars.create(1000, 430, 'star');
+    stars.create(1150, 300, 'star');
+    stars.create(1120, 30, 'star');
+    stars.create(600, 30, 'star');
+    */
+
+
+    
+    var fuel0 = kanistry.create(600, 500, 'fuel').setScale(0.5);
+        //this.physics.add.overlap(gracz, fuel0, collectFuel0, null, this);
+        //this.physics.add.collider(podesty, kanistry);
+
+
+    //kanistry.create(600, 500, 'fuel').setScale(0.5);
+    var fuel = kanistry.create(1120, 200, 'fuel').setScale(0.5);
+    //this.physics.add.collider(player, kanistry);
+        //this.physics.add.overlap(gracz, fuel, collectFuel, null, this);
+        //this.physics.add.collider(podesty, kanistry);
+
+    this.physics.add.collider(kanistry, podesty);
+    this.physics.add.overlap(gracz, kanistry, collectFuel, null, this);
+    
+
+
+
+
+    przeszkody = this.physics.add.group();
+
+    //  The score
+    scoreText = this.add.text(16, 610, 'Wynik: 0', { fontSize: '32px', fill: 'red' });
+    poziom_paliwaText = this.add.text(300, 610, 'Paliwo: 0', { fontSize: '32px', fill: 'red' });
+    //  Collide the player and the stars with the platforms
+    this.physics.add.collider(gracz, podesty);
+    this.physics.add.collider(prezenty, podesty);
+    this.physics.add.collider(przeszkody, podesty);
+
+    //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
+    this.physics.add.overlap(gracz, prezenty, collectPresent, null, this);
+
+    this.physics.add.collider(gracz, przeszkody, hitObstacle, null, this);
+
+    this.physics.add.overlap
+
+    goblinwidocznosc = this.add.image(600, 300, 'goblin2').setScale(0.35);
+    goblinwidocznosc.visible = false;
+}
+
+function update ()
+{
+    if (gameOver)
+    {
+        return;
+    }
+
+    if (klawisze.left.isDown)
+    {
+        gracz.setVelocityX(-160);
+
+        gracz.anims.play('left', true);
+    }
+    else if (klawisze.right.isDown)
+    {
+        gracz.setVelocityX(160);
+
+        gracz.anims.play('right', true);
+    }
+    else
+    {
+        gracz.setVelocityX(0);
+
+        gracz.anims.play('turn');
+    }
+
+    if (klawisze.up.isDown)
+    {
+        if (poziom_paliwa != 0)
+        {
+            gracz.setVelocityY(-220);
+            poziom_paliwa -= 1;
+            poziom_paliwaText.setText('Paliwo:' + poziom_paliwa);
+            this.add.image(polozenie_pixelzielony,620, 'pixelszary');//testpixelszary
+            polozenie_pixelzielony--;
+            if (polozenie_pixelzielony == 501)
+                this.add.image(polozenie_pixelzielony,620, 'pixelszary');//testpixelszary
+        }
+        else
+            if (gracz.body.touching.down)
+            {
+                gracz.setVelocityY(-330);
+            }
+    }
+}
+
+function collectPresent (gracz, prezent)
+{
+
+    prezent.disableBody(true, true);
+
+    //  Add and update the score
+    score += 10;
+    scoreText.setText('Wynik: ' + score);
+
+
+        var przeszkoda = przeszkody.create(450, 560, 'goblin');
+        przeszkoda.setBounce(1);
+        przeszkoda.allowGravity=false;
+        przeszkoda.setCollideWorldBounds(true);
+        przeszkoda.setVelocityX(-100, 0);
+        przeszkoda.setVelocityY(0, 0);
+        przeszkoda.allowGravity = false;
+        if ((licznik++ % 2) == 0)
+        {
+            var przeszkoda = przeszkody.create(Phaser.Math.Between(60, 1150), Phaser.Math.Between(60, 500), 'goblin2').setScale(0.015);
+            przeszkoda.setBounce(1);
+            przeszkoda.allowGravity=true;
+            przeszkoda.setCollideWorldBounds(true);
+            przeszkoda.setVelocityX(0, 0);
+            przeszkoda.setVelocityY(0, 0);
+            przeszkoda.allowGravity = false;
+        }
+
+    if (prezenty.countActive(true) === 0)
+    {
+        this.cameras.main.shake(1000);
+        
+        thedoors_open.create(1147, 530, 'wyjscie');
+        overlay.visible = false;
+        this.physics.add.collider(thedoors_open, podesty);
+        this.physics.add.overlap(gracz, thedoors_open, koncowaFunkcja, null, this);
+
+
+
+/*
+        var fuel0 = kanistry.create(600, 500, 'fuel').setScale(0.5);
+        //this.physics.add.overlap(gracz, fuel0, collectFuel0, null, this);
+        //this.physics.add.collider(podesty, kanistry);
+
+
+    //kanistry.create(600, 500, 'fuel').setScale(0.5);
+    var fuel = kanistry.create(1120, 200, 'fuel').setScale(0.5);
+    //this.physics.add.collider(player, kanistry);
+        //this.physics.add.overlap(gracz, fuel, collectFuel, null, this);
+        //this.physics.add.collider(podesty, kanistry);
+
+    this.physics.add.collider(kanistry, podesty);
+    this.physics.add.overlap(gracz, kanistry, collectFuel, null, this);
+*/
+        
+
+    }
+}
+
+
+
+
+function collectFuel (gracz, fuel)
+{
+
+    fuel.disableBody(true, true);
+
+    //  Add and update the score
+    score += 50;
+    scoreText.setText('Wynik: ' + score);
+    poziom_paliwa += 300;
+    poziom_paliwaText.setText('Paliwo:' + poziom_paliwa);
+    var i = 0;
+    while (i != 300)
+        {
+            this.add.image(polozenie_pixelzielony + i, 620, 'pixelzielony');
+            i++
+        }
+        polozenie_pixelzielony += 300;
+}
+
+function collectFuel0 (gracz, fuel0)
+{
+
+    fuel0.disableBody(true, true);
+
+    //  Add and update the score
+    score += 50;
+    scoreText.setText('Wynik: ' + score);
+    poziom_paliwa += 300;
+    poziom_paliwaText.setText('Paliwo:' + poziom_paliwa);
+    var i = 0;
+        while (i != 300)
+        {
+            this.add.image(polozenie_pixelzielony + i, 620, 'pixelzielony');
+            i++
+        }
+        polozenie_pixelzielony += 300;
+}
+
+
+
+
+
+
+
+
+function hitObstacle (gracz, przeszkoda)
+{
+    /*
+    this.physics.pause();
+    player.setTint(0xff0000);
+    player.anims.play('turn');
+    gameOver = true;
+    */
+    polozenie_pixelzielony = 501;
+    poziom_paliwa = 0;
+    poziom_paliwaText.setText('Paliwo:' + poziom_paliwa);
+    poziom_paliwaText
+    this.cameras.main.shake(1000);
+    score = 0;
+    scoreText.setText('Wynik: ' + score);
+    this.time.delayedCall(500, function() {
+    this.scene.restart();
+  }, [], this);
+}
+
+
+function koncowaFunkcja (gracz, przeszkoda)
+{
+    /*
+    this.physics.pause();
+    player.setTint(0xff0000);
+    player.anims.play('turn');
+    gameOver = true;
+    */
+    polozenie_pixelzielony = 501;
+    poziom_paliwa = 0;
+    poziom_paliwaText.setText('Paliwo:' + poziom_paliwa);
+    goblinwidocznosc.visible = true;
+    this.cameras.main.shake(80000);
+    //score = 0;
+    scoreText.setText('Wynik: ' + score);
+
+    this.time.delayedCall(16000, function() {
+    goblinwidocznosc.visible = true;
+  }, [], this);
+
+    this.time.delayedCall(10000, function() {
+    goblinwidocznosc.visible = false;
+  }, [], this);
+
+
+
+    this.time.delayedCall(5000, function() {
+    this.scene.restart();
+  }, [], this);
+}
+
+</script>
+
+</body>
+</html>
