@@ -1,1 +1,21 @@
-zaliczenie
+MARCIN KURZAWSKI 18724
+
+W projekcie wykorzystano framework Phaser.js
+
+OPIS FRAMEWORKA:
+  Obiekt config zawiera ustawienia gry (grawitacja, ustawienie sceny).
+  W funkcji preload ładujemy wszystkie elementy, których będziemy używać.
+  Funkcja create służy do załadowania początkowych ustawień, wypozycjonowania elementów, dodaniu kolizji itp.
+  Funkcja update odpowiada za zmiany, które dokonywane są na bieżąco, kiedy gra jest już uruchomiona.
+  Pozostałe funkcje stworzono w celu utrzymania przejrzystości kodu.
+  
+  
+OPIS PROJEKTU:
+Gra platformowa
+Postać mikołaja zbierająca prezenty. Po zebraniu prezentu na planszy pojawiaja się kolejni przeciwnicy, ilość punktów uzyskana przez gracza jest zwiększana. Po zderzeniu się z przeciwnikiem plansza jest resetowana, a wynik punktowy ustawiony na 0. Po zebraniu wszystkich prezentów otwierają się drzwi, a po dotarciu do nich plansza zostaje zresetowana (wynik punktowy pozostaje bez zmian). 
+
+Odpalanie: 
+cmd -> cd sciezka_do_folderu_zawierajacego projekt -> http-server
+
+Ewentualnie komendy pomocnicze:
+npm install http-server -g
